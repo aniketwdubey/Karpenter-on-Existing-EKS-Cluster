@@ -329,7 +329,7 @@ This deployment creates 4 replicas of a pod that requests 1 CPU core each. The p
 
 ▪︎ Initially we had 2 Nodes:
 
-![Initial Nodes 1](/Users/aniketdubey/Downloads/1.png)
+![Initial Nodes](https://cdn.hashnode.com/res/hashnode/image/upload/v1725824839816/6f4df733-9f04-452a-8c15-9a5b9df9369b.png)
 
 ```bash
 kubectl apply -f inflate.yaml
@@ -339,13 +339,13 @@ kubectl apply -f inflate.yaml
 
 If Karpenter is working correctly, you should see new nodes being added to your cluster to accommodate the inflate pods. This demonstrates Karpenter's ability to automatically scale your cluster based on resource demands.
 
-![After Deployment 1](/Users/aniketdubey/Downloads/2.png)
+![After Deployment 1](https://cdn.hashnode.com/res/hashnode/image/upload/v1725825272433/b174355c-a3e1-45bf-9877-2936fec87b03.png)
 
-![After Deployment 2](/Users/aniketdubey/Downloads/3.png)
+![After Deployment 2](https://cdn.hashnode.com/res/hashnode/image/upload/v1725825292958/58d280e4-5dfe-4832-b9fa-f3f96f44c277.png)
 
-![After Deployment 3](/Users/aniketdubey/Downloads/4.png)
+![After Deployment 3](https://cdn.hashnode.com/res/hashnode/image/upload/v1725825300961/ec04e2d1-b6ff-4134-813e-b72d9663d63a.png)
 
-![After Deployment 4](/Users/aniketdubey/Downloads/5.png)
+![After Deployment 4](https://cdn.hashnode.com/res/hashnode/image/upload/v1725825310015/72dd3aee-3b41-4ee3-abc5-c4052472992f.png)
 
 ▪︎ Delete the Deployment
 
