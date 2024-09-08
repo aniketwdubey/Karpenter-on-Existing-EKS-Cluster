@@ -2,68 +2,64 @@
 
 This repository contains the code and configuration files for setting up Karpenter on an existing Amazon EKS cluster, as described in the blog post [Karpenter Setup on Existing EKS cluster: Optimizing Kubernetes Node Management](https://aniketdubey.hashnode.dev/karpenter-setup-on-existing-eks-cluster).
 
-## Contents
+## Table of Contents
 
-- Terraform configurations for IAM roles and policies
-- Kubernetes manifests for Karpenter deployment
-- Sample application for testing Karpenter
+1. [Introduction](#introduction)
+2. [Brief Overview of Karpenter](#brief-overview-of-karpenter)
+3. [Key Differences from Cluster Autoscaler](#key-differences-from-cluster-autoscaler)
+4. [Prerequisites](#prerequisites)
+5. [Setup Steps](#setup-steps)
+6. [Testing the Setup](#testing-the-setup)
+7. [Repository Contents](#repository-contents)
+8. [Usage](#usage)
+9. [Contributing](#contributing)
+10. [License](#license)
+11. [Acknowledgments](#acknowledgments)
+12. [References and Resources](#references-and-resources)
 
-## Files
+## Introduction
 
-- `terraform/`: Directory containing Terraform configurations
-  - `main.tf`: Main Terraform configuration
-  - `variables.tf`: Terraform variables
-  - `outputs.tf`: Terraform outputs
-  - `versions.tf`: Terraform version constraints
-  - `node_role.tf`: IAM role for Karpenter nodes
-  - `controller_role.tf`: IAM role for Karpenter controller
-- `karpenter.yaml`: Karpenter Helm chart values
-- `nodepool.yaml`: Karpenter NodePool and EC2NodeClass configuration
-- `inflate.yaml`: Sample application for testing Karpenter
+This guide walks you through the process of setting up Karpenter on an existing Amazon EKS cluster. Karpenter is an open-source node provisioning project that automatically launches just the right compute resources to handle your Kubernetes cluster's applications.
 
-## Brief overview of Karpenter
-
-Karpenter is an open-source node provisioning project that automatically launches just the right compute resources to handle your Kubernetes cluster's applications. This guide will walk you through the process of setting up Karpenter on an existing Amazon EKS cluster.
+## Brief Overview of Karpenter
 
 Karpenter is designed to improve the efficiency and cost of running workloads on Kubernetes by:
 
-* **Just-in-Time Provisioning**: Karpenter can rapidly launch nodes in response to pending pods, often in seconds.
-    
-* **Bin-Packing**: It efficiently packs pods onto nodes to maximize resource utilization.
-    
-* **Diverse Instance Types**: Karpenter can provision a wide range of instance types, including spot instances, to optimize for cost and performance.
-    
-* **Custom Resource Provisioning**: It allows for fine-grained control over node provisioning based on pod requirements.
-    
-* **Automatic Node Termination**: Karpenter can remove nodes that are no longer needed, helping to reduce costs.
-    
+- **Just-in-Time Provisioning**: Rapidly launching nodes in response to pending pods, often in seconds.
+- **Bin-Packing**: Efficiently packing pods onto nodes to maximize resource utilization.
+- **Diverse Instance Types**: Provisioning a wide range of instance types, including spot instances, to optimize for cost and performance.
+- **Custom Resource Provisioning**: Allowing fine-grained control over node provisioning based on pod requirements.
+- **Automatic Node Termination**: Removing nodes that are no longer needed, helping to reduce costs.
 
-Note: This tutorial is based on official Karpenter documentation [https://karpenter.sh/docs/getting-started/migrating-from-cas/](https://karpenter.sh/docs/getting-started/migrating-from-cas/)  
-The difference is I am using terraform to create the iam roles: KarpenterNodeRole and KarpenterControllerRole
+## Key Differences from Cluster Autoscaler
 
-## Key Differences from Cluster Autoscaler:
-
-* Karpenter doesn't rely on node groups, offering more flexibility in instance selection.
-    
-* It can provision nodes faster and more efficiently, reducing scheduling latency.
-    
-* Karpenter integrates directly with the AWS APIs, allowing for more efficient cloud resource management.
-    
-* Read more here [https://www.kubecost.com/kubernetes-autoscaling/kubernetes-cluster-autoscaler/](https://www.kubecost.com/kubernetes-autoscaling/kubernetes-cluster-autoscaler/)
-    
+- Karpenter doesn't rely on node groups, offering more flexibility in instance selection.
+- It can provision nodes faster and more efficiently, reducing scheduling latency.
+- Karpenter integrates directly with the AWS APIs, allowing for more efficient cloud resource management.
+- For more details, see [this comparison](https://www.kubecost.com/kubernetes-autoscaling/kubernetes-cluster-autoscaler/).
 
 ## Prerequisites
 
-\- AWS CLI and kubectl installed and configured  
-\- Helm installed  
-\- Terraform - for IAM role and policy setup (in this tutorial)  
-\- Existing EKS cluster setup  
-\- Existing VPC and subnets  
-\- Existing security groups  
-\- Nodes in one or more node groups  
-\- [OIDC provider](https://docs.aws.amazon.com/eks/latest/userguide/enable-iam-roles-for-service-accounts.html) service accounts in your cluster
+- AWS CLI and kubectl installed and configured
+- Helm installed
+- Terraform - for IAM role and policy setup
+- Existing EKS cluster setup
+- Existing VPC and subnets
+- Existing security groups
+- Nodes in one or more node groups
+- [OIDC provider](https://docs.aws.amazon.com/eks/latest/userguide/enable-iam-roles-for-service-accounts.html) for service accounts in your cluster
 
-## 1\. Set Environment Variables
+## Setup Steps
+
+1. [Set Environment Variables](#1-set-environment-variables)
+2. [Create OpenID Connect (OIDC) provider](#2-creating-openid-connect-oidc-provider)
+3. [Set Up IAM Roles and Policies](#3-set-up-iam-roles-and-policies)
+4. [Tag Subnets and Security Groups](#4-tag-subnets-and-security-groups)
+5. [Update aws-auth ConfigMap](#5-update-aws-auth-configmap)
+6. [Deploy Karpenter](#6-deploy-karpenter)
+7. [Create NodePool](#7-create-nodepool)
+
+### 1. Set Environment Variables
 
 Define cluster-specific information and AWS account details that will be used throughout the migration process.
 
@@ -85,13 +81,13 @@ GPU_AMI_ID="$(aws ssm get-parameter --name /aws/service/eks/optimized-ami/${K8S_
 
 Make sure to replace &lt;your cluster name&gt; with your actual EKS cluster name.
 
-## 2\. Creating OpenID Connect (OIDC) provider
+### 2. Creating OpenID Connect (OIDC) provider
 
 [**Check if you have an existing IAM OIDC provider**](https://repost.aws/knowledge-center/eks-troubleshoot-oidc-and-irsa) **for your cluster**
 
 [Create an IAM OIDC provider](https://docs.aws.amazon.com/eks/latest/userguide/enable-iam-roles-for-service-accounts.html) for your cluster
 
-## 3\. Set Up IAM Roles and Policies
+### 3. Set Up IAM Roles and Policies
 
 Set up the necessary permissions for Karpenter to interact with AWS services. This includes a role for Karpenter-provisioned nodes and a role for the Karpenter controller itself.
 
@@ -115,7 +111,7 @@ From the terrrafrom script, you will create 2 IAM Roles:
 
 ![IAM Roles](https://cdn.hashnode.com/res/hashnode/image/upload/v1725635087032/0fa5de96-b618-49fe-9266-038298722d52.png)
 
-## 4\. Tag Subnets and Security Groups
+### 4. Tag Subnets and Security Groups
 
 After applying the Terraform configuration, tag the subnets and security groups to enable Karpenter to discover and use the appropriate subnets and security groups when provisioning new nodes.
 
@@ -151,7 +147,7 @@ aws ec2 create-tags \
     --resources "${SECURITY_GROUPS}"
 ```
 
-## 5\. Update aws-auth ConfigMap
+### 5. Update aws-auth ConfigMap
 
 Update aws-auth ConfigMap to allow nodes created by Karpenter to join the EKS cluster by granting the necessary permissions to the Karpenter node IAM role.
 
@@ -171,7 +167,7 @@ Add the following section to the mapRoles:
 
 Replace ${AWS\_PARTITION}, ${AWS\_ACCOUNT\_ID}, and ${CLUSTER\_NAME} with your actual values.
 
-## 6\. Deploy Karpenter
+### 6. Deploy Karpenter
 
 Install the Karpenter controller and its associated resources in the cluster, configuring it to work with your specific EKS setup.
 
@@ -187,7 +183,7 @@ helm template karpenter oci://public.ecr.aws/karpenter/karpenter --version "${KA
     --set controller.resources.limits.memory=1Gi > karpenter.yaml
 ```
 
-### 6.1 Set Node Affinity for Karpenter
+#### 6.1 Set Node Affinity for Karpenter
 
 Ensure Karpenter runs on existing node group nodes, maintaining high availability and preventing it from scheduling itself on nodes it manages.
 
@@ -212,7 +208,7 @@ affinity:
 
 Replace ${NODEGROUP} with your actual node group name.
 
-### 6.2: Apply Karpenter Configuration
+#### 6.2: Apply Karpenter Configuration
 
 ```bash
 Apply the Karpenter configuration:kubectl create namespace "${KARPENTER_NAMESPACE}" || true
@@ -225,7 +221,7 @@ kubectl create -f \
 kubectl apply -f karpenter.yaml
 ```
 
-## 7\. Create NodePool
+### 7. Create NodePool
 
 Define the default configuration for nodes that Karpenter will provision, including instance types, capacity type, and other constraints.
 
@@ -292,9 +288,9 @@ spec:
 kubectl apply -f nodepool.yaml
 ```
 
-## 8\. Testing the Setup - Deploy Sample Application
+## Testing the Setup
 
-To test Karpenter's autoscaling capabilities, we'll deploy a sample application called "inflate". This application creates pods that consume resources, triggering Karpenter to provision new nodes as needed.
+Deploy a sample application to test Karpenter's autoscaling capabilities:
 
 Create a file named `inflate.yaml` with the following content:
 
@@ -361,27 +357,18 @@ kubectl delete -f inflate.yaml
 
 And you will see the node which was created will be deleted.
 
-## Code Repository
+## Repository Contents
 
-[https://github.com/aniketwdubey/Karpenter-on-Existing-EKS-Cluster](https://github.com/aniketwdubey/Karpenter-on-Existing-EKS-Cluster)
-
-## References and Resources
-
-▪︎ [https://karpenter.sh/docs/getting-started/migrating-from-cas/](https://karpenter.sh/docs/getting-started/migrating-from-cas/)
-
-▪︎ [https://repost.aws/knowledge-center/eks-troubleshoot-oidc-and-irsa](https://repost.aws/knowledge-center/eks-troubleshoot-oidc-and-irsa)
-
-▪︎ [https://github.com/aws-ia/terraform-aws-eks-blueprints/tree/main/patterns/karpenter-mng](https://github.com/aws-ia/terraform-aws-eks-blueprints/tree/main/patterns/karpenter-mng)
-
-▪︎ [https://aws-ia.github.io/terraform-aws-eks-blueprints/patterns/karpenter-mng/](https://aws-ia.github.io/terraform-aws-eks-blueprints/patterns/karpenter-mng/)
-
-▪︎ [Karpenter Best Practices](https://aws.github.io/aws-eks-best-practices/karpenter/)
-
-## Conclusion
-
-You have now successfully set up Karpenter on your existing EKS cluster. Karpenter will automatically manage and scale your node groups based on the workload demands of your cluster.
-
-Remember to monitor your cluster and adjust the Karpenter configuration as needed to optimize performance and cost. You may need to fine-tune the NodePool configuration based on your specific workload requirements.
+- `terraform/`: Directory containing Terraform configurations
+  - `main.tf`: Main Terraform configuration
+  - `variables.tf`: Terraform variables
+  - `outputs.tf`: Terraform outputs
+  - `versions.tf`: Terraform version constraints
+  - `node_role.tf`: IAM role for Karpenter nodes
+  - `controller_role.tf`: IAM role for Karpenter controller
+- `karpenter.yaml`: Karpenter Helm chart values
+- `nodepool.yaml`: Karpenter NodePool and EC2NodeClass configuration
+- `inflate.yaml`: Sample application for testing Karpenter
 
 ## Usage
 
@@ -401,5 +388,12 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 ## Acknowledgments
 
 - [Official Karpenter Documentation](https://karpenter.sh/docs/)
+
+## References and Resources
+
+- [Karpenter Migration Guide](https://karpenter.sh/docs/getting-started/migrating-from-cas/)
+- [EKS OIDC Troubleshooting](https://repost.aws/knowledge-center/eks-troubleshoot-oidc-and-irsa)
+- [EKS Blueprints Karpenter Pattern](https://github.com/aws-ia/terraform-aws-eks-blueprints/tree/main/patterns/karpenter-mng)
+- [Karpenter Best Practices](https://aws.github.io/aws-eks-best-practices/karpenter/)
 
 For more detailed instructions, please refer to the full [blog post](https://aniketdubey.hashnode.dev/karpenter-setup-on-existing-eks-cluster).
