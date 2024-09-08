@@ -1,0 +1,56 @@
+apiVersion: karpenter.sh/v1beta1
+kind: NodePool
+metadata:
+  name: default #can change 
+spec:
+  template:
+    spec:
+      requirements:
+        - key: kubernetes.io/arch
+          operator: In
+          values: ["amd64", "arm64"] 
+        - key: kubernetes.io/os
+          operator: In  
+          values: ["linux"]
+        - key: karpenter.sh/capacity-type
+          operator: In
+          values: ["spot"] #on-demand #prioritizes spot
+        - key: karpenter.k8s.aws/instance-category
+          operator: In
+          values: ["c", "m", "r"]
+        - key: karpenter.k8s.aws/instance-generation
+          operator: Gt
+          values: ["2"]
+      nodeClassRef:
+        apiVersion: karpenter.k8s.aws/v1beta1
+        kind: EC2NodeClass
+        name: default
+  limits:
+    cpu: 1000
+  # disruption:
+  #   consolidationPolicy: WhenUnderutilized 
+  #   expireAfter: 720h # 30 * 24h = 720h
+  disruption:
+    consolidationPolicy: WhenEmpty
+    consolidateAfter: 30s
+---
+apiVersion: karpenter.k8s.aws/v1beta1
+kind: EC2NodeClass
+metadata:
+  name: default
+spec:
+  amiFamily: AL2 # Amazon Linux 2
+  role: "KarpenterNodeRole-karpenter-cluster" # replace with your cluster name
+  subnetSelectorTerms:
+    - tags:
+        karpenter.sh/discovery: karpenter-cluster # replace with your cluster name
+  securityGroupSelectorTerms:
+    - tags:
+        karpenter.sh/discovery: karpenter-cluster # replace with your cluster name
+  amiSelectorTerms:
+    - id: ami-0d1d7c8c32a476XXX
+    - id: ami-0f91781eb6d40dXXX
+    - id: ami-058b426ded9842XXX # <- GPU Optimized AMD AMI 
+#   - name: "amazon-eks-node-${K8S_VERSION}-*" # <- automatically upgrade when a new AL2 EKS Optimized AMI is released. This is unsafe for production workloads. Validate AMIs in lower environments before deploying them to production.
+  # tags:
+  #   karpenter.sh/discovery: ex-karpenter-mng
