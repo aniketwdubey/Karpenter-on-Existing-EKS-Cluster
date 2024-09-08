@@ -95,7 +95,7 @@ Make sure to replace &lt;your cluster name&gt; with your actual EKS cluster name
 
 Set up the necessary permissions for Karpenter to interact with AWS services. This includes a role for Karpenter-provisioned nodes and a role for the Karpenter controller itself.
 
-In this step, Terraform is used to create the necessary IAM roles and policies for Karpenter to function properly with your EKS cluster. Specifically, it's creating:
+In this step, Terraform is used to create the necessary IAM roles and policies for Karpenter to function properly with your EKS cluster setup. Specifically, it's creating:
 
 * A Karpenter Node IAM Role: This role is assumed by the EC2 instances that Karpenter creates, allowing them to join the EKS cluster and access necessary AWS resources.
     
@@ -113,7 +113,7 @@ terraform apply
 
 From the terrrafrom script, you will create 2 IAM Roles:
 
-![](https://cdn.hashnode.com/res/hashnode/image/upload/v1725635087032/0fa5de96-b618-49fe-9266-038298722d52.png align="center")
+![IAM Roles](https://cdn.hashnode.com/res/hashnode/image/upload/v1725635087032/0fa5de96-b618-49fe-9266-038298722d52.png)
 
 ## 4\. Tag Subnets and Security Groups
 
@@ -333,9 +333,9 @@ This deployment creates 4 replicas of a pod that requests 1 CPU core each. The p
 
 ▪︎ Initially we had 2 Nodes:
 
-![](https://cdn.hashnode.com/res/hashnode/image/upload/v1725636275156/7d0b011e-a2e5-4e1b-a48a-25dbf6f44eb9.png align="center")
+![Initial Nodes 1](https://cdn.hashnode.com/res/hashnode/image/upload/v1725636275156/7d0b011e-a2e5-4e1b-a48a-25dbf6f44eb9.png)
 
-![](https://cdn.hashnode.com/res/hashnode/image/upload/v1725636312174/2d0dc0dd-4dfa-458b-8cde-c9aced2d6cd3.png align="center")
+![Initial Nodes 2](https://cdn.hashnode.com/res/hashnode/image/upload/v1725636312174/2d0dc0dd-4dfa-458b-8cde-c9aced2d6cd3.png)
 
 ```bash
 kubectl apply -f inflate.yaml
@@ -345,13 +345,13 @@ kubectl apply -f inflate.yaml
 
 If Karpenter is working correctly, you should see new nodes being added to your cluster to accommodate the inflate pods. This demonstrates Karpenter's ability to automatically scale your cluster based on resource demands.
 
-![](https://cdn.hashnode.com/res/hashnode/image/upload/v1725636460988/0116370f-8a33-4849-9095-f5f99e853a3e.png align="center")
+![After Deployment 1](https://cdn.hashnode.com/res/hashnode/image/upload/v1725636460988/0116370f-8a33-4849-9095-f5f99e853a3e.png)
 
-![](https://cdn.hashnode.com/res/hashnode/image/upload/v1725636452440/3a07a6c2-aedd-40f1-94f6-1c26b6b5a181.png align="center")
+![After Deployment 2](https://cdn.hashnode.com/res/hashnode/image/upload/v1725636452440/3a07a6c2-aedd-40f1-94f6-1c26b6b5a181.png)
 
-![](https://cdn.hashnode.com/res/hashnode/image/upload/v1725636475455/a41eb9df-053c-4769-9863-b778aa0e8b69.png align="center")
+![After Deployment 3](https://cdn.hashnode.com/res/hashnode/image/upload/v1725636475455/a41eb9df-053c-4769-9863-b778aa0e8b69.png)
 
-![](https://cdn.hashnode.com/res/hashnode/image/upload/v1725636482564/f11033a9-a932-4f4e-8aca-424f1da523b7.png align="center")
+![After Deployment 4](https://cdn.hashnode.com/res/hashnode/image/upload/v1725636482564/f11033a9-a932-4f4e-8aca-424f1da523b7.png)
 
 ▪︎ Delete the Deployment
 
