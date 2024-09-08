@@ -31,7 +31,6 @@ This repository contains the code and configuration files for setting up Karpent
 
 ## Files
 
-- `set_env_vars.sh`: Script to set necessary environment variables
 - `terraform/`: Directory containing Terraform configurations
   - `main.tf`: Main Terraform configuration
   - `variables.tf`: Terraform variables
